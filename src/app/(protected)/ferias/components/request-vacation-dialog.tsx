@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar as CalendarIcon, ChevronLeft, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -25,13 +25,12 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { createVacationRequest } from "@/actions/create-vacation-request";
+import { getCollaborators } from "@/actions/get-collaborators";
 
-const mockCollaborators = [
-  { id: "1", name: "Carlos Santos" },
-  { id: "2", name: "Mariana Costa" },
-  { id: "3", name: "João Silva" },
-  { id: "4", name: "Ana Paula" },
-];
+type SimpleCollaborator = {
+  id: string;
+  nomeCompleto: string;
+};
 
 interface RequestVacationDialogProps {
   open: boolean;
@@ -45,6 +44,8 @@ export function RequestVacationDialog({
   onSuccess,
 }: RequestVacationDialogProps) {
   const [step, setStep] = useState(1);
+  const [collaborators, setCollaborators] = useState<SimpleCollaborator[]>([]);
+  const [isLoadingCollaborators, setIsLoadingCollaborators] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -115,9 +116,42 @@ export function RequestVacationDialog({
     startDate && endDate ? differenceInDays(endDate, startDate) + 1 : 0;
 
   const selectedCollaboratorName =
-    mockCollaborators.find((c) => c.id === selectedCollaborator)?.name || "";
+    collaborators.find((c) => c.id === selectedCollaborator)?.nomeCompleto ||
+    "";
 
   const availableDaysAfter = 20 - totalDays;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const loadCollaborators = async () => {
+      try {
+        setIsLoadingCollaborators(true);
+        const result = await getCollaborators({
+          status: "ativo",
+          orderBy: "nome",
+          orderDirection: "asc",
+          limit: 200,
+        });
+
+        if (result.success && Array.isArray(result.data)) {
+          setCollaborators(
+            result.data.map((c: any) => ({
+              id: c.id,
+              nomeCompleto: c.nomeCompleto,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Erro ao carregar colaboradores:", error);
+        toast.error("Erro ao carregar colaboradores");
+      } finally {
+        setIsLoadingCollaborators(false);
+      }
+    };
+
+    void loadCollaborators();
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
@@ -136,22 +170,28 @@ export function RequestVacationDialog({
         {step === 1 && (
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Funcionário</label>
+              <label className="text-sm font-medium">Colaborador</label>
               <Select
                 value={selectedCollaborator}
                 onValueChange={setSelectedCollaborator}
+                disabled={isLoadingCollaborators}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o funcionário" />
+                  <SelectValue placeholder="Selecione o colaborador" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockCollaborators.map((collaborator) => (
+                  {collaborators.map((collaborator) => (
                     <SelectItem key={collaborator.id} value={collaborator.id}>
-                      {collaborator.name}
+                      {collaborator.nomeCompleto}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {isLoadingCollaborators && (
+                <p className="text-xs text-muted-foreground">
+                  Carregando colaboradores...
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

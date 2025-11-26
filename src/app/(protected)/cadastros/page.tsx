@@ -22,14 +22,18 @@ import { CargoDialog } from "./components/cargo-dialog";
 import { CargosTable } from "./components/cargos-table";
 import { DepartmentDialog } from "./components/department-dialog";
 import { DepartmentsTable } from "./components/departments-table";
+import { UnitDialog } from "./components/unit-dialog";
+import { UnitsTable } from "./components/units-table";
 import { PhotoFacialDialog } from "./components/photo-facial-dialog";
 
 import { getCollaborators } from "@/actions/get-collaborators";
 import { deactivateCollaborator } from "@/actions/deactivate-collaborator";
 import { getDepartments } from "@/actions/get-departments";
 import { getCargos } from "@/actions/get-cargos";
+import { getUnits } from "@/actions/get-units";
 import { deactivateCargo } from "@/actions/deactivate-cargo";
 import { deactivateDepartment } from "@/actions/deactivate-department";
+import { deactivateUnit } from "@/actions/deactivate-unit";
 
 const CadastrosPage = () => {
   const [activeTab, setActiveTab] = useState("colaboradores");
@@ -82,6 +86,19 @@ const CadastrosPage = () => {
   const [departmentTotalPages, setDepartmentTotalPages] = useState(1);
   const [departmentSortField, setDepartmentSortField] = useState("createdAt");
   const [departmentSortDirection, setDepartmentSortDirection] = useState<"asc" | "desc">("desc");
+
+  // Unidades
+  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
+  const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
+  const [unitsList, setUnitsList] = useState<any[]>([]);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(true);
+  const [unitSearch, setUnitSearch] = useState("");
+  const [unitTipoFilter, setUnitTipoFilter] = useState("all");
+  const [unitAtivoFilter, setUnitAtivoFilter] = useState<boolean | undefined>(undefined);
+  const [unitPage, setUnitPage] = useState(1);
+  const [unitTotalPages, setUnitTotalPages] = useState(1);
+  const [unitSortField, setUnitSortField] = useState("createdAt");
+  const [unitSortDirection, setUnitSortDirection] = useState<"asc" | "desc">("desc");
 
   // Carregar colaboradores
   const loadCollaborators = async () => {
@@ -159,6 +176,31 @@ const CadastrosPage = () => {
     }
   };
 
+  // Carregar unidades
+  const loadUnits = async () => {
+    setIsLoadingUnits(true);
+    try {
+      const result = await getUnits({
+        search: unitSearch,
+        tipo: unitTipoFilter !== "all" ? unitTipoFilter : undefined,
+        ativo: unitAtivoFilter,
+        page: unitPage,
+        limit: 10,
+        orderBy: unitSortField,
+        orderDirection: unitSortDirection,
+      });
+      if (result.success) {
+        setUnitsList(result.data || []);
+        setUnitTotalPages(result.pagination?.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar unidades:", error);
+      toast.error("Erro ao carregar unidades");
+    } finally {
+      setIsLoadingUnits(false);
+    }
+  };
+
   const loadFilters = async () => {
     try {
       const [deptResult, cargoResult] = await Promise.all([
@@ -187,6 +229,8 @@ const CadastrosPage = () => {
       loadCargos();
     } else if (activeTab === "departamentos") {
       loadDepartments();
+    } else if (activeTab === "unidades") {
+      loadUnits();
     }
   }, [
     activeTab,
@@ -209,6 +253,12 @@ const CadastrosPage = () => {
     departmentPage,
     departmentSortField,
     departmentSortDirection,
+    unitSearch,
+    unitTipoFilter,
+    unitAtivoFilter,
+    unitPage,
+    unitSortField,
+    unitSortDirection,
   ]);
 
   // Handlers Colaboradores
@@ -277,6 +327,25 @@ const CadastrosPage = () => {
     }
   };
 
+  // Handlers Unidades
+  const handleEditUnit = (id: string) => {
+    setEditingUnitId(id);
+    setIsUnitDialogOpen(true);
+  };
+
+  const handleDeleteUnit = async (id: string) => {
+    try {
+      const result = await deactivateUnit(id);
+      if (result.success) {
+        toast.success("Unidade desativada com sucesso!");
+        loadUnits();
+        loadFilters();
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Erro ao desativar unidade");
+    }
+  };
+
   const handleSort = (field: string) => {
     if (activeTab === "colaboradores") {
       if (sortField === field) {
@@ -299,19 +368,28 @@ const CadastrosPage = () => {
         setDepartmentSortField(field);
         setDepartmentSortDirection("asc");
       }
+    } else if (activeTab === "unidades") {
+      if (unitSortField === field) {
+        setUnitSortDirection(unitSortDirection === "asc" ? "desc" : "asc");
+      } else {
+        setUnitSortField(field);
+        setUnitSortDirection("asc");
+      }
     }
   };
 
   const getCurrentSortField = () => {
     if (activeTab === "colaboradores") return sortField;
     if (activeTab === "cargos") return cargoSortField;
-    return departmentSortField;
+    if (activeTab === "departamentos") return departmentSortField;
+    return unitSortField;
   };
 
   const getCurrentSortDirection = () => {
     if (activeTab === "colaboradores") return sortDirection;
     if (activeTab === "cargos") return cargoSortDirection;
-    return departmentSortDirection;
+    if (activeTab === "departamentos") return departmentSortDirection;
+    return unitSortDirection;
   };
 
   return (
@@ -359,6 +437,18 @@ const CadastrosPage = () => {
             Novo departamento
           </Button>
         )}
+        {activeTab === "unidades" && (
+          <Button
+            className="bg-foreground text-background hover:bg-foreground/90 rounded-lg"
+            onClick={() => {
+              setEditingUnitId(null);
+              setIsUnitDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova unidade
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -366,6 +456,7 @@ const CadastrosPage = () => {
           <TabsTrigger value="colaboradores">Colaboradores</TabsTrigger>
           <TabsTrigger value="cargos">Cargos</TabsTrigger>
           <TabsTrigger value="departamentos">Departamentos</TabsTrigger>
+          <TabsTrigger value="unidades">Unidades</TabsTrigger>
         </TabsList>
 
         <TabsContent value="colaboradores" className="space-y-4">
@@ -694,6 +785,107 @@ const CadastrosPage = () => {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="unidades" className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por código ou nome..."
+                      value={unitSearch}
+                      onChange={(e) => {
+                        setUnitSearch(e.target.value);
+                        setUnitPage(1);
+                      }}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+                <Select
+                  value={unitTipoFilter}
+                  onValueChange={(value) => {
+                    setUnitTipoFilter(value);
+                    setUnitPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="Matriz">Matriz</SelectItem>
+                    <SelectItem value="Filial">Filial</SelectItem>
+                    <SelectItem value="Escritório">Escritório</SelectItem>
+                    <SelectItem value="Fábrica">Fábrica</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={unitAtivoFilter === undefined ? "all" : unitAtivoFilter ? "ativo" : "inativo"}
+                  onValueChange={(value) => {
+                    setUnitAtivoFilter(
+                      value === "all" ? undefined : value === "ativo"
+                    );
+                    setUnitPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="inativo">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-0">
+              <UnitsTable
+                units={unitsList}
+                isLoading={isLoadingUnits}
+                onEdit={handleEditUnit}
+                onDelete={handleDeleteUnit}
+                onSort={handleSort}
+                sortField={unitSortField}
+                sortDirection={unitSortDirection}
+              />
+            </CardContent>
+          </Card>
+
+          {unitTotalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Página {unitPage} de {unitTotalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnitPage((p) => Math.max(1, p - 1))}
+                  disabled={unitPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnitPage((p) => Math.min(unitTotalPages, p + 1))}
+                  disabled={unitPage === unitTotalPages}
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       <NewCollaboratorDialog
@@ -737,6 +929,21 @@ const CadastrosPage = () => {
         departmentId={editingDepartmentId}
         onSuccess={() => {
           loadDepartments();
+          loadFilters();
+        }}
+      />
+
+      <UnitDialog
+        open={isUnitDialogOpen}
+        onOpenChange={(open) => {
+          setIsUnitDialogOpen(open);
+          if (!open) {
+            setEditingUnitId(null);
+          }
+        }}
+        unitId={editingUnitId}
+        onSuccess={() => {
+          loadUnits();
           loadFilters();
         }}
       />

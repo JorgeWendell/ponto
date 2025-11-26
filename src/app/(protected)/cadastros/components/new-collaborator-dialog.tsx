@@ -207,6 +207,13 @@ const collaboratorSchema = z.object({
   account: z.string().min(1, { message: "Conta é obrigatória" }),
   accountType: z.string().min(1, { message: "Tipo de conta é obrigatório" }),
   pixKey: z.string().optional().or(z.literal("")),
+  // Documentos
+  rg: z.string().optional().or(z.literal("")),
+  orgaoExpedidor: z.string().optional().or(z.literal("")),
+  tituloEleitor: z.string().optional().or(z.literal("")),
+  pisPasep: z.string().optional().or(z.literal("")),
+  ctps: z.string().optional().or(z.literal("")),
+  serieCtps: z.string().optional().or(z.literal("")),
 });
 
 type CollaboratorFormValues = z.infer<typeof collaboratorSchema>;
@@ -250,6 +257,13 @@ const defaultValues: CollaboratorFormValues = {
   account: "",
   accountType: "",
   pixKey: "",
+  // Documentos
+  rg: "",
+  orgaoExpedidor: "",
+  tituloEleitor: "",
+  pisPasep: "",
+  ctps: "",
+  serieCtps: "",
 };
 
 export function NewCollaboratorDialog({
@@ -349,6 +363,13 @@ export function NewCollaboratorDialog({
         account: data.conta || "",
         accountType: data.tipoConta || "",
         pixKey: data.pix || "",
+        // Documentos
+        rg: data.rg || "",
+        orgaoExpedidor: data.orgaoExpedidor || "",
+        tituloEleitor: data.tituloEleitor || "",
+        pisPasep: data.pisPasep || "",
+        ctps: data.ctps || "",
+        serieCtps: data.serieCtps || "",
       });
     } catch (error: any) {
       console.error("Erro ao carregar colaborador:", error);
@@ -450,6 +471,12 @@ export function NewCollaboratorDialog({
                     className="data-[state=active]:bg-accent"
                   >
                     Financeiro
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="documents"
+                    className="data-[state=active]:bg-accent"
+                  >
+                    Documentos
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="personal" className="space-y-4">
@@ -1058,6 +1085,100 @@ export function NewCollaboratorDialog({
                             <FormLabel>Chave PIX</FormLabel>
                             <FormControl>
                               <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                  </div>
+                </TabsContent>
+                <TabsContent value="documents" className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="rg"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>RG</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="00.000.000-0" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="orgaoExpedidor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Órgão expedidor</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="SSP" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="tituloEleitor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Título de eleitor</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="000000000000" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="pisPasep"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>PIS/PASEP</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="000.00000.00-0" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="ctps"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CTPS</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="0000000" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Field>
+                    <Field>
+                      <FormField
+                        control={form.control}
+                        name="serieCtps"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Série CTPS</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="000" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

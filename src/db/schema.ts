@@ -84,6 +84,25 @@ export const bankEnum = pgEnum("bank_enum", [
   "MERCANTIL",
 ]);
 
+export const tipoMarcacaoEnum = pgEnum("tipo_marcacao_enum", [
+  "ENTRADA",
+  "SAIDA",
+  "ENTRADA_ALMOCO",
+  "VOLTA_ALMOCO",
+]);
+
+export const metodoMarcacaoEnum = pgEnum("metodo_marcacao_enum", [
+  "FACIAL",
+  "MANUAL",
+  "QRCODE",
+]);
+
+export const statusMarcacaoEnum = pgEnum("status_marcacao_enum", [
+  "PENDENTE",
+  "CONFIRMADO",
+  "REJEITADO",
+]);
+
 export const usersTable = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -458,6 +477,48 @@ export const solicitacoesFeriasTable = pgTable(
   })
 );
 
+export const marcacoesPontoTable = pgTable(
+  "marcacoes_ponto",
+  {
+    id: text("id").primaryKey(),
+    colaboradorId: text("colaborador_id")
+      .references(() => colaboradoresTable.id, { onDelete: "cascade" })
+      .notNull(),
+    tipo: tipoMarcacaoEnum("tipo").notNull(),
+    dataHora: timestamp("data_hora", { withTimezone: true }).notNull(),
+    metodo: metodoMarcacaoEnum("metodo").notNull(),
+    fotoCapturadaUrl: text("foto_capturada_url"), // Para auditoria
+    localizacaoLatitude: decimal("localizacao_latitude", {
+      precision: 10,
+      scale: 8,
+    }),
+    localizacaoLongitude: decimal("localizacao_longitude", {
+      precision: 11,
+      scale: 8,
+    }),
+    dispositivoInfo: text("dispositivo_info"), // User agent, IP, etc
+    status: statusMarcacaoEnum("status").notNull().default("PENDENTE"),
+    justificativa: text("justificativa"), // Para marcações manuais
+    aprovadoPor: text("aprovado_por").references(() => usersTable.id), // Se manual, precisa aprovação
+    dataAprovacao: timestamp("data_aprovacao", { withTimezone: true }),
+    motivoRejeicao: text("motivo_rejeicao"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    colaboradorIdx: index("idx_marcacoes_ponto_colaborador").on(
+      table.colaboradorId
+    ),
+    dataHoraIdx: index("idx_marcacoes_ponto_data_hora").on(table.dataHora),
+    tipoIdx: index("idx_marcacoes_ponto_tipo").on(table.tipo),
+    statusIdx: index("idx_marcacoes_ponto_status").on(table.status),
+    colaboradorDataIdx: index("idx_marcacoes_ponto_colaborador_data").on(
+      table.colaboradorId,
+      table.dataHora
+    ),
+  })
+);
+
 // ============================================
 // RELAÇÕES (Relations)
 // ============================================
@@ -496,6 +557,7 @@ export const colaboradoresRelations = relations(
     formacoesAcademicas: many(formacoesAcademicasTable),
     experienciasProfissionais: many(experienciasProfissionaisTable),
     contatosEmergencia: many(contatosEmergenciaTable),
+    marcacoesPonto: many(marcacoesPontoTable),
   })
 );
 
@@ -575,6 +637,20 @@ export const colaboradoresFeriasRelations = relations(
   })
 );
 
+export const marcacoesPontoRelations = relations(
+  marcacoesPontoTable,
+  ({ one }) => ({
+    colaborador: one(colaboradoresTable, {
+      fields: [marcacoesPontoTable.colaboradorId],
+      references: [colaboradoresTable.id],
+    }),
+    aprovador: one(usersTable, {
+      fields: [marcacoesPontoTable.aprovadoPor],
+      references: [usersTable.id],
+    }),
+  })
+);
+
 // ============================================
 // TYPES (útil para TypeScript)
 // ============================================
@@ -627,3 +703,6 @@ export type NovoDocumentoColaborador =
 
 export type SolicitacaoFerias = typeof solicitacoesFeriasTable.$inferSelect;
 export type NovoSolicitacaoFerias = typeof solicitacoesFeriasTable.$inferInsert;
+
+export type MarcacaoPonto = typeof marcacoesPontoTable.$inferSelect;
+export type NovaMarcacaoPonto = typeof marcacoesPontoTable.$inferInsert;

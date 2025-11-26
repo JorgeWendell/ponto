@@ -48,6 +48,13 @@ export const updateCollaboratorSchema = z.object({
   account: z.string().min(1, "Conta é obrigatória"),
   accountType: z.string().min(1, "Tipo de conta é obrigatório"),
   pixKey: z.string().optional().or(z.literal("")),
+  // Documentos
+  rg: z.string().optional().or(z.literal("")),
+  orgaoExpedidor: z.string().optional().or(z.literal("")),
+  tituloEleitor: z.string().optional().or(z.literal("")),
+  pisPasep: z.string().optional().or(z.literal("")),
+  ctps: z.string().optional().or(z.literal("")),
+  serieCtps: z.string().optional().or(z.literal("")),
 });
 
 export type UpdateCollaboratorInput = z.infer<typeof updateCollaboratorSchema>;

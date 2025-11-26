@@ -3,14 +3,10 @@
 import { db } from "@/db";
 import { colaboradoresTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { nextcloudClient } from "@/lib/nextcloud/client";
-import {
-  ensureDirectoryExists,
-  getCollaboratorPath,
-  getFacialPath,
-  getFileUrl,
-  sanitizeFileName,
-} from "@/lib/nextcloud/utils";
+import { getFileUrl } from "@/lib/nextcloud/utils";
+
+const FACE_RECOGNITION_API_URL =
+  process.env.FACE_RECOGNITION_API_URL || "http://localhost:8000";
 
 export async function uploadFacial(formData: FormData) {
   try {
@@ -50,23 +46,50 @@ export async function uploadFacial(formData: FormData) {
       };
     }
 
-    const collaboratorPath = getCollaboratorPath(collaboratorId);
-    await ensureDirectoryExists(collaboratorPath);
-
-    const timestamp = Date.now();
-    const extension = file.name.split(".").pop() || "jpg";
-    const sanitizedName = sanitizeFileName(`facial_${timestamp}.${extension}`);
-    const filePath = getFacialPath(collaboratorId, sanitizedName);
-
+    // Converter arquivo para base64
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString("base64");
+    const mimeType = file.type || "image/jpeg";
+    const fileBase64 = `data:${mimeType};base64,${base64}`;
 
-    await nextcloudClient.putFileContents(filePath, buffer, {
-      overwrite: true,
+    // Chamar API Python para fazer upload (com validação de face)
+    console.log("📤 Enviando facial para validação e upload via Python...");
+    const response = await fetch(`${FACE_RECOGNITION_API_URL}/upload-facial`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        colaborador_id: collaboratorId,
+        image_base64: fileBase64,
+      }),
     });
 
-    const fileUrl = getFileUrl(filePath);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Erro na API Python:", errorText);
+      return {
+        success: false,
+        error: `Erro ao processar upload: ${response.statusText}`,
+        url: null,
+      };
+    }
 
+    const result = await response.json();
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || "Erro ao fazer upload de facial",
+        url: null,
+      };
+    }
+
+    // Converter path do Nextcloud para URL da API proxy
+    const fileUrl = getFileUrl(result.url);
+
+    // Salvar URL no banco
     await db
       .update(colaboradoresTable)
       .set({
@@ -74,6 +97,8 @@ export async function uploadFacial(formData: FormData) {
         updatedAt: new Date(),
       })
       .where(eq(colaboradoresTable.id, collaboratorId));
+
+    console.log("✅ Facial cadastrada com sucesso:", fileUrl);
 
     return { 
       success: true, 

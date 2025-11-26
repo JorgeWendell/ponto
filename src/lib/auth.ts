@@ -32,9 +32,12 @@ export const auth = betterAuth({
   },
   trustedOrigins: [
     "http://localhost:3000",
+    "https://localhost:3000",
     "https://ponto.adelbr.tech",
     "http://ponto.adelbr.tech:3000",
     "http://192.168.15.55:3000",
+    "http://192.168.15.12:3000",
+    "https://192.168.15.12:3000",
   ],
-  baseURL: "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 });

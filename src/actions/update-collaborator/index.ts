@@ -100,6 +100,13 @@ export async function updateCollaborator(input: unknown) {
         conta: validated.account,
         tipoConta: validated.accountType,
         pix: validated.pixKey || null,
+        // Documentos
+        rg: validated.rg || null,
+        orgaoExpedidor: validated.orgaoExpedidor || null,
+        tituloEleitor: validated.tituloEleitor || null,
+        pisPasep: validated.pisPasep || null,
+        ctps: validated.ctps || null,
+        serieCtps: validated.serieCtps || null,
         updatedAt: new Date(),
       })
       .where(eq(colaboradoresTable.id, validated.id))

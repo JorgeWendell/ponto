@@ -20,6 +20,13 @@ export async function getCollaboratorById(id: string) {
       dataNascimento: colaboradoresTable.dataNascimento,
       genero: colaboradoresTable.genero,
       estadoCivil: colaboradoresTable.estadoCivil,
+      // Documentos
+      rg: colaboradoresTable.rg,
+      orgaoExpedidor: colaboradoresTable.orgaoExpedidor,
+      tituloEleitor: colaboradoresTable.tituloEleitor,
+      pisPasep: colaboradoresTable.pisPasep,
+      ctps: colaboradoresTable.ctps,
+      serieCtps: colaboradoresTable.serieCtps,
       emailCorporativo: colaboradoresTable.emailCorporativo,
       emailPessoal: colaboradoresTable.emailPessoal,
       telefoneCelular: colaboradoresTable.telefoneCelular,

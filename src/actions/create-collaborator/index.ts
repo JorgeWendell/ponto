@@ -97,6 +97,13 @@ export async function createCollaborator(input: unknown) {
         conta: validated.account,
         tipoConta: validated.accountType,
         pix: validated.pixKey || null,
+        // Documentos
+        rg: validated.rg || null,
+        orgaoExpedidor: validated.orgaoExpedidor || null,
+        tituloEleitor: validated.tituloEleitor || null,
+        pisPasep: validated.pisPasep || null,
+        ctps: validated.ctps || null,
+        serieCtps: validated.serieCtps || null,
         status: "ativo",
       })
       .returning();

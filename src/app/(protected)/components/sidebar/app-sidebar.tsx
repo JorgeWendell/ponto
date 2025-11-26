@@ -107,6 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   const toggleTheme = () => {
+    if (!mounted) return;
     setTheme(theme === "dark" ? "light" : "dark");
   };
 

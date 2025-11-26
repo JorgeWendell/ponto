@@ -50,3 +50,34 @@ export function getPublicFileUrl(path: string): string {
   return `${baseUrl}/index.php/s/${publicPath}`;
 }
 
+/**
+ * Extrai o path do Nextcloud de uma URL (seja API proxy ou WebDAV direto)
+ */
+export function extractNextcloudPath(url: string): string | null {
+  if (!url) return null;
+
+  // Se for URL da API proxy, extrair o path
+  if (url.includes("/api/nextcloud/image?path=")) {
+    const pathMatch = url.match(/path=([^&]+)/);
+    return pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+  }
+
+  // Se for URL WebDAV direta, extrair o path após colaboradores/
+  if (url.includes("/colaboradores/")) {
+    const pathAfterColab = url.split("/colaboradores/")[1];
+    if (pathAfterColab) {
+      return `colaboradores/${pathAfterColab.split("?")[0]}`;
+    }
+  }
+
+  // Se for URL WebDAV completa, tentar extrair
+  const webdavPattern = /\/remote\.php\/dav\/files\/[^/]+\/(.+)$/;
+  const match = url.match(webdavPattern);
+  if (match) {
+    return match[1];
+  }
+
+  // Se não conseguir extrair, retornar null
+  return null;
+}
+

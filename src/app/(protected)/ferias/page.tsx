@@ -11,7 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, isAfter, isBefore, addDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
@@ -127,10 +127,23 @@ const FeriasPage = () => {
     }
   };
 
-  const totalDays = 30;
-  const usedDays = 10;
-  const availableDays = 20;
-  const progressValue = (availableDays / totalDays) * 100;
+  const now = new Date();
+  const inicioMes = startOfMonth(now);
+  const fimMes = endOfMonth(now);
+  const proximos7DiasLimite = addDays(now, 7);
+
+  const pendentes = requests.filter((r) => r.status === "pendente").length;
+  const aprovadasEsteMes = requests.filter((r) => {
+    if (r.status !== "aprovado" || !r.dataInicio) return false;
+    const data = new Date(r.dataInicio);
+    return !isBefore(data, inicioMes) && !isAfter(data, fimMes);
+  }).length;
+
+  const feriasProximas = requests.filter((r) => {
+    if (r.status !== "aprovado" || !r.dataInicio) return false;
+    const data = new Date(r.dataInicio);
+    return !isBefore(data, now) && !isAfter(data, proximos7DiasLimite);
+  }).length;
 
   return (
     <div className="flex flex-col h-full p-6 space-y-6">
@@ -181,40 +194,7 @@ const FeriasPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Meu saldo de férias</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Disponível</span>
-                  <span className="font-medium">{availableDays} dias</span>
-                </div>
-                <Progress value={progressValue} className="h-2" />
-              </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total:</span>
-                  <span className="font-medium">{totalDays} dias</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Usado:</span>
-                  <span className="font-medium">{usedDays} dias</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Disponível:</span>
-                  <span className="font-medium">{availableDays} dias</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pt-2 border-t text-sm text-orange-600">
-                <AlertTriangle className="h-4 w-4" />
-                <span>Vence em 01/06/2025</span>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="lg:col-span-1">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Estatísticas</CardTitle>
@@ -223,7 +203,7 @@ const FeriasPage = () => {
               <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
                 <div>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    8
+                    {pendentes}
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     Solicitações pendentes
@@ -233,7 +213,7 @@ const FeriasPage = () => {
               <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950">
                 <div>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    24
+                    {aprovadasEsteMes}
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300">
                     Aprovadas este mês
@@ -243,7 +223,7 @@ const FeriasPage = () => {
               <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950">
                 <div>
                   <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    5
+                    {feriasProximas}
                   </p>
                   <p className="text-sm text-orange-700 dark:text-orange-300">
                     Férias próximas (7 dias)
