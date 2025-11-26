@@ -9,8 +9,8 @@ set -e
 APP_DIR="/var/www/ponto"
 APP_NAME="ponto"
 REPO_URL="https://github.com/JorgeWendell/ponto.git"
-DOMAIN="${DOMAIN:-localhost}"  # Pode ser configurado via variável de ambiente
-PORT="${PORT:-3000}"
+DOMAIN="${DOMAIN:-ponto.adelbr.tech:9099}"  # Pode ser configurado via variável de ambiente
+PORT="${PORT:-9099}"
 
 # Cores
 GREEN='\033[0;32m'
@@ -164,8 +164,8 @@ else
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/ponto
 
 # NextAuth / Better Auth
-BETTER_AUTH_URL=http://localhost:3000
-BETTER_AUTH_SECRET=your-secret-key-change-this-in-production
+BETTER_AUTH_URL=http://ponto.adelbr.tech:9099
+BETTER_AUTH_SECRET=Adel@1234
 
 # Nextcloud
 NEXTCLOUD_WEBDAV_URL=http://192.168.15.10/remote.php/dav/files/Ponto
@@ -173,7 +173,7 @@ NEXTCLOUD_USER=ponto
 NEXTCLOUD_PASSWORD=Lucas@120908
 
 # Face Recognition Service
-FACE_RECOGNITION_API_URL=http://192.168.15.12:9090
+FACE_RECOGNITION_API_URL=http://192.168.15.56:9090
 
 # Node Environment
 NODE_ENV=production
