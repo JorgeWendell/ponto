@@ -61,7 +61,7 @@ const cargoSchema = z.object({
   salarioMaximo: z.string().optional(),
   escolaridadeMinima: z.string().optional(),
   experienciaMinimaAnos: z.string().optional(),
-  ativo: z.boolean().default(true),
+  ativo: z.boolean(),
 });
 
 type CargoFormValues = z.infer<typeof cargoSchema>;
@@ -116,11 +116,14 @@ export function CargoDialog({
       const result = await getCargoById(cargoId);
       if (result.success && result.data) {
         const data = result.data;
+        const nivelValue = data.nivel && nivelValues.includes(data.nivel as typeof nivelValues[number]) 
+          ? (data.nivel as typeof nivelValues[number])
+          : undefined;
         form.reset({
           codigo: data.codigo || "",
           titulo: data.titulo || "",
           descricao: data.descricao || "",
-          nivel: data.nivel || undefined,
+          nivel: nivelValue,
           cbo: data.cbo || "",
           salarioMinimo: data.salarioMinimo || "",
           salarioMaximo: data.salarioMaximo || "",

@@ -50,6 +50,8 @@ export async function getDashboardMetrics(days: number = 30) {
     // Férias próximas (próximos X dias baseado no período)
     const proximosDias = new Date(agora);
     proximosDias.setDate(proximosDias.getDate() + days);
+    const agoraStr = agora.toISOString().split('T')[0]; // YYYY-MM-DD
+    const proximosDiasStr = proximosDias.toISOString().split('T')[0]; // YYYY-MM-DD
 
     const [feriasProximas] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -57,22 +59,23 @@ export async function getDashboardMetrics(days: number = 30) {
       .where(
         and(
           eq(solicitacoesFeriasTable.status, "aprovado"),
-          gte(solicitacoesFeriasTable.dataInicio, agora),
-          lt(solicitacoesFeriasTable.dataInicio, proximosDias)
+          gte(solicitacoesFeriasTable.dataInicio, agoraStr),
+          lt(solicitacoesFeriasTable.dataInicio, proximosDiasStr)
         )
       );
 
     // Férias próximas período anterior
     const inicioPeriodoAnteriorParaFerias = new Date(agora);
     inicioPeriodoAnteriorParaFerias.setDate(agora.getDate() - days);
+    const inicioPeriodoAnteriorParaFeriasStr = inicioPeriodoAnteriorParaFerias.toISOString().split('T')[0]; // YYYY-MM-DD
     const [feriasProximasPeriodoAnterior] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(solicitacoesFeriasTable)
       .where(
         and(
           eq(solicitacoesFeriasTable.status, "aprovado"),
-          gte(solicitacoesFeriasTable.dataInicio, inicioPeriodoAnteriorParaFerias),
-          lt(solicitacoesFeriasTable.dataInicio, agora)
+          gte(solicitacoesFeriasTable.dataInicio, inicioPeriodoAnteriorParaFeriasStr),
+          lt(solicitacoesFeriasTable.dataInicio, agoraStr)
         )
       );
 

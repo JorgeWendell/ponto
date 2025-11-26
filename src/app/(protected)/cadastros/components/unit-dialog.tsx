@@ -52,7 +52,7 @@ const unitSchema = z.object({
   estado: z.string().optional(),
   telefone: z.string().optional(),
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-  ativo: z.boolean().default(true),
+  ativo: z.boolean(),
 });
 
 type UnitFormValues = z.infer<typeof unitSchema>;

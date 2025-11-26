@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       ? fileBuffer
       : Buffer.from(fileBuffer as ArrayBuffer);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=31536000, immutable",

@@ -49,7 +49,7 @@ const departmentSchema = z.object({
   departamentoPaiId: z.string().optional(),
   gestorId: z.string().optional(),
   centroCusto: z.string().optional(),
-  ativo: z.boolean().default(true),
+  ativo: z.boolean(),
 });
 
 type DepartmentFormValues = z.infer<typeof departmentSchema>;

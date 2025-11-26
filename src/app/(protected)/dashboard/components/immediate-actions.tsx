@@ -21,7 +21,7 @@ interface ImmediateAction {
     nomeCompleto: string;
     avatarUrl: string | null;
   } | null;
-  urgencia: string;
+  urgencia: string | null;
   dataInicio: string;
   dataFim: string;
   totalDias: number;
@@ -71,7 +71,10 @@ export function ImmediateActions({
     }
   };
 
-  const getUrgencyBadgeVariant = (urgency: string) => {
+  const getUrgencyBadgeVariant = (urgency: string | null) => {
+    if (!urgency) {
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    }
     switch (urgency) {
       case "alta":
         return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40";
@@ -138,12 +141,14 @@ export function ImmediateActions({
                     <p className="font-medium">
                       {action.colaborador?.nomeCompleto || "N/A"}
                     </p>
-                    <Badge
-                      variant="outline"
-                      className={getUrgencyBadgeVariant(action.urgencia)}
-                    >
-                      {action.urgencia}
-                    </Badge>
+                    {action.urgencia && (
+                      <Badge
+                        variant="outline"
+                        className={getUrgencyBadgeVariant(action.urgencia)}
+                      >
+                        {action.urgencia}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-3 w-3" />

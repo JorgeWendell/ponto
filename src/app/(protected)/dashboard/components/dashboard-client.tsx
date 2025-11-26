@@ -61,7 +61,7 @@ interface ImmediateAction {
     nomeCompleto: string;
     avatarUrl: string | null;
   } | null;
-  urgencia: string;
+  urgencia: string | null;
   dataInicio: string;
   dataFim: string;
   totalDias: number;
@@ -87,14 +87,14 @@ interface Unit {
   codigo: string;
   nome: string;
   tipo: string | null;
-  ativo: boolean;
+  ativo: boolean | null;
 }
 
 interface Department {
   id: string;
   codigo: string;
   nome: string;
-  ativo: boolean;
+  ativo: boolean | null;
 }
 
 interface DashboardClientProps {
