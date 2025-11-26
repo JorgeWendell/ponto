@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { getFileUrl } from "@/lib/nextcloud/utils";
 
 const FACE_RECOGNITION_API_URL =
-  process.env.FACE_RECOGNITION_API_URL || "http://localhost:8000";
+  process.env.FACE_RECOGNITION_API_URL || "http://localhost:9090";
 
 export async function uploadFacial(formData: FormData) {
   try {
@@ -14,35 +14,35 @@ export async function uploadFacial(formData: FormData) {
     const collaboratorId = formData.get("collaboratorId") as string | null;
 
     if (!file) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: "Arquivo é obrigatório",
-        url: null 
+        url: null,
       };
     }
 
     if (!collaboratorId) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: "ID do colaborador é obrigatório",
-        url: null 
+        url: null,
       };
     }
 
     if (!file.type.startsWith("image/")) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: "Apenas arquivos de imagem são permitidos",
-        url: null 
+        url: null,
       };
     }
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: "Arquivo muito grande. Tamanho máximo: 5MB",
-        url: null 
+        url: null,
       };
     }
 
@@ -100,19 +100,19 @@ export async function uploadFacial(formData: FormData) {
 
     console.log("✅ Facial cadastrada com sucesso:", fileUrl);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       url: fileUrl,
-      error: null 
+      error: null,
     };
   } catch (error: any) {
     console.error("Erro ao fazer upload da facial:", error);
-    const errorMessage = error?.message || error?.toString() || "Erro ao fazer upload da facial";
-    return { 
-      success: false, 
+    const errorMessage =
+      error?.message || error?.toString() || "Erro ao fazer upload da facial";
+    return {
+      success: false,
       error: errorMessage,
-      url: null 
+      url: null,
     };
   }
 }
-

@@ -9,7 +9,7 @@ import { getMarcacoesHoje } from "@/actions/get-marcacoes-hoje";
 import { recognizeFaceSchema } from "./schema";
 
 const FACE_RECOGNITION_API_URL =
-  process.env.FACE_RECOGNITION_API_URL || "http://localhost:8000";
+  process.env.FACE_RECOGNITION_API_URL || "http://localhost:9090";
 
 export async function recognizeFace(input: unknown) {
   try {

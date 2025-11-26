@@ -11,7 +11,8 @@
     "generate-cert": "node scripts/generate-cert-node.js",
     "generate-cert:openssl": "node scripts/generate-cert.js",
     "download-face-models": "node scripts/download-face-models.js",
-    "dev:setup": "npm run generate-cert && npm run dev"
+    "dev:setup": "npm run generate-cert && npm run dev",
+    "deploy": "git pull && npm install && npx drizzle-kit push && npm run build && pm2 restart ponto"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
