@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/custom-server.js",
+    "dev": "node scripts/custom-server.js -p 9099",
     "dev:http": "next dev -H 0.0.0.0",
     "build": "next build",
-    "start": "next start -H 0.0.0.0",
+    "start": "next start -H 0.0.0.0 -p 9099",
     "lint": "eslint",
     "generate-cert": "node scripts/generate-cert-node.js",
     "generate-cert:openssl": "node scripts/generate-cert.js",
