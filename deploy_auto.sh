@@ -74,14 +74,28 @@ print_success "Dependências do sistema instaladas"
 # Passo 3: Instalar Node.js (se não estiver instalado)
 # ============================================
 print_step "Verificando Node.js..."
-if ! command -v node &> /dev/null; then
-    print_step "Instalando Node.js 20.x..."
+NEEDS_NODE_INSTALL=false
+
+if command -v node &> /dev/null; then
+    CURRENT_NODE_VERSION=$(node -v)
+    if [[ $CURRENT_NODE_VERSION != v20.* ]]; then
+        print_info "Node.js $CURRENT_NODE_VERSION encontrado. Instalando Node.js 20.x..."
+        NEEDS_NODE_INSTALL=true
+    else
+        print_success "Node.js $CURRENT_NODE_VERSION já instalado"
+    fi
+else
+    print_info "Node.js não encontrado. Instalando Node.js 20.x..."
+    NEEDS_NODE_INSTALL=true
+fi
+
+if [ "$NEEDS_NODE_INSTALL" = true ]; then
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - > /dev/null 2>&1
     apt install -y nodejs > /dev/null 2>&1
 fi
 
-NODE_VERSION=$(node -v)
-print_success "Node.js instalado: $NODE_VERSION"
+NODE_VERSION=$(node -v 2>/dev/null || echo "não instalado")
+print_success "Node.js em uso: $NODE_VERSION"
 
 # ============================================
 # Passo 4: Instalar PM2 (se não estiver instalado)
